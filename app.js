@@ -3,8 +3,6 @@ const app = express()
 const mongoose = require('mongoose')
 
 
-
-
 mongoose.connect('mongodb+srv://lezardon:Aaqwzsxedc0@lezardon.p1ktrcv.mongodb.net/?retryWrites=true&w=majority',
     {
         useNewUrlParser: true,
@@ -23,11 +21,9 @@ app.use((req, res, next) => {
 });
 
 app.use('/', (req,res,next) => {
-    res.status(200).json({message : "je vous ai entendu !"})
+    res.status(200).json({message : "je vous ai compris !"})
 })
-
-
-
-
+app.use('/api/auth', userRoutes)
+app.use('/images', express.static(path.join(__dirname, 'images')))
 
 module.exports = app
