@@ -1,6 +1,10 @@
 const express = require("express")
 const app = express()
 const mongoose = require('mongoose')
+const userRoutes = require('./routes/user')
+const userSauces = require('./routes/sauce')
+const path = require('path')
+
 
 
 mongoose.connect('mongodb+srv://lezardon:Aaqwzsxedc0@lezardon.p1ktrcv.mongodb.net/?retryWrites=true&w=majority',
@@ -20,10 +24,9 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/', (req,res,next) => {
-    res.status(200).json({message : "je vous ai compris !"})
-})
+
 app.use('/api/auth', userRoutes)
+app.use('/api/sauces', userSauces)
 app.use('/images', express.static(path.join(__dirname, 'images')))
 
 module.exports = app
