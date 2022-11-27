@@ -3,15 +3,25 @@ const fs = require('fs')
 const sauce = require("../models/sauce")
 
 
-
-exports.getAllSauces = (req, res, next) => {
-    Sauce.find()
-        .then(sauces => {
-            // console.log(sauces)
-            res.status(200).json(sauces)
-        })
-        .catch((error) => res.status(400).json({ error }))
+exports.getAllSauces = async(req,res) => {
+    try {
+        const sauces = await Sauce.find()
+        res.status(200).json(sauces)
+    }
+    catch(error) {
+        res.status(500).json({error})
+    }
 }
+
+
+// exports.getAllSauces = (req, res, next) => {
+//     Sauce.find()
+//         .then(sauces => {
+//             // console.log(sauces)
+//             res.status(200).json(sauces)
+//         })
+//         .catch((error) => res.status(400).json({ error }))
+// }
 
 
 exports.createSauce = (req, res, next) => {

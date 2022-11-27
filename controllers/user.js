@@ -14,7 +14,7 @@ exports.signup = (req, res, next) => {
                 .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
                 .catch(error => res.status(400).json({ error }));
         })
-        .catch(error => res.status(500).json({ error }));
+        .catch(error => res.status(500).json({ message : "error bcrypt" }));
 };
 
 exports.login = (req, res, next) => {
@@ -23,6 +23,9 @@ exports.login = (req, res, next) => {
             if (!user) {
                 return res.status(401).json({ error: 'Utilisateur non trouvé !' });
             }
+            console.log("passage avant bcrypt compare")
+            console.log("req.body.password", req.body.password)
+            console.log("user.password", user.password)
             bcrypt.compare(req.body.password, user.password)
                 .then(valid => {
                     if (!valid) {
@@ -38,7 +41,7 @@ exports.login = (req, res, next) => {
                             )
                         });
                 })
-                .catch(error => res.status(500).json({ error }));
+                .catch(error => res.status(500).json({ message: "erreur bcrypt compare" }));
         })
-        .catch(error => res.status(500).json({ error }));
+        .catch(error => res.status(500).json({ message : "Erreur phase de login !" }));
 };
