@@ -3,25 +3,16 @@ const fs = require('fs')
 const sauce = require("../models/sauce")
 
 
-exports.getAllSauces = async(req,res) => {
+exports.getAllSauces = async (req, res) => {
     try {
         const sauces = await Sauce.find()
         res.status(200).json(sauces)
     }
-    catch(error) {
-        res.status(500).json({error})
+    catch (error) {
+        res.status(500).json({ error })
     }
 }
 
-
-// exports.getAllSauces = (req, res, next) => {
-//     Sauce.find()
-//         .then(sauces => {
-//             // console.log(sauces)
-//             res.status(200).json(sauces)
-//         })
-//         .catch((error) => res.status(400).json({ error }))
-// }
 
 
 exports.createSauce = (req, res, next) => {
@@ -47,7 +38,7 @@ exports.createSauce = (req, res, next) => {
 
 
 exports.getOneSauce = (req, res, next) => {
-    Sauce.findOne({ _id: req.params.id })
+    Sauce.findById({ _id: req.params.id })
         .then((sauce) => {
             // console.log(sauce)
             res.status(200).json(sauce)
@@ -67,8 +58,9 @@ exports.deleteSauce = (req, res, next) => {
             if (sauce.userId != req.auth.userId) {
                 res.status(401).json({ message: 'Not Authorized' })
             } else {
+
                 const sauceImageUrl = sauce.imageUrl
-                const filename = sauce.imageUrl.split('/images/')[1]
+                const filename = sauceImageUrl.split('/images/')[1]
                 // console.log(filename)
                 fs.unlink(`images/${filename}`, () => {
                     Sauce.deleteOne({ _id: req.params.id })
@@ -95,7 +87,6 @@ exports.modifySauce = (req, res, next) => {
             // console.log("sauce modifiée : ",req.params.id,sauceObject)
             // console.log("sauce BdD : ",sauce)
             // res.status(200).json({ message: "modifySauce !" })
-
             if (sauce.userId != req.auth.userId) {
                 res.status(401).json({ message: 'Not authorized' });
             } else if (req.file) {
@@ -125,35 +116,65 @@ exports.modifySauceLike = (req, res, next) => {
     console.log(likeObject.userId)
     Sauce.findOne({ _id: req.params.id })
         .then((sauce) => {
-            console.log(likeObject.like)
+            let modifyArray = (likeObject.like === 1) ? sauce.usersLiked : sauce.usersDisliked
+            let indexInArray = modifyArray.indexOf(likeObject.userId)
+            // action en fonction du type de like
             switch (likeObject.like) {
                 case 1:
-                    console.log("like")
-                    console.log("avant : " ,sauce.usersLiked)
-                    sauce.usersLiked.push(likeObject.userId)
-                    console.log("après : " ,sauce.usersLiked)
-                    console.log(sauce)
-                    sauce.likes += 1
-
-                    Sauce.updateOne({ _id: sauce._id }, { usersLiked : sauce.usersLiked,likes : sauce.likes })
-                        .then(() => res.status(200).json({ message: 'Objet modifié!' }))
-                        .catch(error => res.status(401).json({ error }));
-
-                    break
+                    // si l'identifiant du like est absent de la liste des likes, on l'ajoute
+                    if (indexInArray === -1) {
+                        modifyArray.push(likeObject.userId)
+                        sauce.likes += 1
+                        Sauce.updateOne({ _id: sauce._id }, { usersLiked: modifyArray, likes: sauce.likes })
+                            .then(() => res.status(200).json({ message: 'Like ajouté !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    } else {
+                        // console.log("id deja dans le tableau")
+                        res.status(200).json({ message: 'Sauce déjà liké par cet id!' })
+                    }
+                    break;
                 case -1:
-                    console.log("unlike")
-                    res.status(200).json({ message: "modifySauce like !" })
+                    // si l'identifiant du dislike est absent de la liste des dislikes, on l'ajoute                    
+                    if (indexInArray === -1) {
+                        modifyArray.push(likeObject.userId)
+                        sauce.dislikes += 1
+                        Sauce.updateOne({ _id: sauce._id }, { usersDisliked: modifyArray, dislikes: sauce.dislikes })
+                            .then(() => res.status(200).json({ message: 'Objet modifié!' }))
+                            .catch(error => res.status(401).json({ message: "Dislike ajouté !" }));
+                    } else {
+                        // console.log("id deja dans le tableau")
+                        res.status(200).json({ message: 'Sauce déjà disliké par cet id!' })
+                    }
                     break
                 case 0:
-                    console.log("changé d'avis")
-                    res.status(200).json({ message: "modifySauce like !" })
+                    // si l'identifiant est présent dans liste des dislikes, on le retire
+                    if (indexInArray !== -1) {
+                        modifyArray.splice(indexInArray, 1)
+                        sauce.dislikes -= 1
+                        Sauce.updateOne({ _id: sauce._id }, { usersDisliked: modifyArray, dislikes: sauce.dislikes })
+                            .then(() => res.status(200).json({ message: 'Dislike retiré !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    }
+                    // sinon, si l'identifiant est présent dans liste des likes, on le retire
+                    else if (sauce.usersLiked.indexOf(likeObject.userId) !== -1) {
+                        modifyArray = sauce.usersLiked
+                        indexInArray = modifyArray.indexOf(likeObject.userId)
+                        modifyArray.splice(indexInArray, 1)
+                        sauce.likes -= 1
+                        Sauce.updateOne({ _id: sauce._id }, { usersLiked: modifyArray, likes: sauce.likes })
+                            .then(() => res.status(200).json({ message: 'Like retiré !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    }
+                    else {                        
+                        res.status(200).json({ message: 'Identifiant incorrect !' })
+                    }
                     break
 
                 default:
-                    console.log("pas like")
+                    // console.log("pas like")
                     res.status(200).json({ message: "modifySauce like !" })
             }
-            
         }
         )
 }
+
