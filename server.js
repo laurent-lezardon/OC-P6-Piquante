@@ -3,9 +3,9 @@ const dotenv = require('dotenv')
 const app = require('./app');
 dotenv.config()
 
+// renvoi un port valide qu'il soit fourni sous forme d'un numéro ou d'une chaîne
 const normalizePort = val => {
   const port = parseInt(val, 10);
-
   if (isNaN(port)) {
     return val;
   }
@@ -14,13 +14,16 @@ const normalizePort = val => {
   }
   return false;
 };
+
+
 const port = normalizePort(process.env.PORT ||'3000');
 app.set('port', port);
 
+// gestion des erreurs
 const errorHandler = error => {
   if (error.syscall !== 'listen') {
     throw error;
-  }
+  }  
   const address = server.address();
   const bind = typeof address === 'string' ? 'pipe ' + address : 'port: ' + port;
   switch (error.code) {
