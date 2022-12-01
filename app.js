@@ -1,10 +1,12 @@
 const express = require("express");
+// création d'une application Express
 const app = express();
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/user");
 const userSauces = require("./routes/sauce");
 const path = require("path");
 
+// connexion à la base de données MongoDB
 mongoose
   .connect(
     "mongodb+srv://lezardon:Aaqwzsxedc0@lezardon.p1ktrcv.mongodb.net/?retryWrites=true&w=majority",
@@ -16,6 +18,7 @@ mongoose
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
+// utilisation du parser JSON d'express  
 app.use(express.json());
 
 // ========= CORS Cross Origin Resource Sharing =============

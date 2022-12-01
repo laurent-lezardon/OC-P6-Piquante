@@ -2,6 +2,7 @@ const Sauce = require("../models/sauce");
 const fs = require("fs");
 const sauce = require("../models/sauce");
 
+// ========= logique de récupération de toutes les sauces =========
 exports.getAllSauces = async (req, res) => {
     try {
         const sauces = await Sauce.find();
@@ -11,6 +12,7 @@ exports.getAllSauces = async (req, res) => {
     }
 };
 
+// ========= logique de création d'une sauce =========
 exports.createSauce = (req, res, next) => {
     console.log(req.body.sauce);
     const sauce = new Sauce({
@@ -18,8 +20,7 @@ exports.createSauce = (req, res, next) => {
         // filename : attribué par multer
         imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename
             }`,
-    });
-    console.log(sauce);
+    });    
     sauce
         .save()
         .then(() => {
@@ -30,20 +31,24 @@ exports.createSauce = (req, res, next) => {
         });
 };
 
+
+// ========= logique de récupération d'une sauce =========
 exports.getOneSauce = (req, res, next) => {
     Sauce.findById({ _id: req.params.id }).then((sauce) => {
         res.status(200).json(sauce);
     });
 };
 
+// ========= logique de suppression d'une sauce =========
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id }).then((sauce) => {
         // Si l'utilisateur n'est pas le propriétaire, la suppression n'est pas autorisée
         if (sauce.userId != req.auth.userId) {
             res.status(401).json({ message: "Not Authorized" });
-        } else {
-            // filename : nom de l'ancien fichier image
+        } else {            
+            // filename : nom du fichier image
             const filename = sauce.imageUrl.split("/images/")[1];
+            // suppression du fichier image et de la sauce en BdD
             fs.unlink(`images/${filename}`, () => {
                 Sauce.deleteOne({ _id: req.params.id })
                     .then(() => {
@@ -55,6 +60,8 @@ exports.deleteSauce = (req, res, next) => {
     });
 };
 
+
+// ========= logique de modification d'une sauce =========
 exports.modifySauce = (req, res, next) => {
     // Si la requète contient un fichier, multer revoi un JSON et un nom de fichier
     // sinon le body contient un objet déjà parsé (express)
@@ -100,9 +107,7 @@ exports.modifySauce = (req, res, next) => {
         });
 };
 
-/**
- *
- */
+// ========= logique de gestion des 'like' =========
 exports.modifySauceLike = (req, res, next) => {
     // req.body { userId, like : 1(like),-1(dislike) ou 0(change)}
     const likeObject = req.body;

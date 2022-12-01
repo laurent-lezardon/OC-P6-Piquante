@@ -3,7 +3,9 @@ const User = require("../models/User")
 const jwt = require("jsonwebtoken")
 const dotenv = require("dotenv")
 
+// ============== logique de création de compte =============================
 exports.signup = (req, res, next) => {
+    // hash du mot de passe reçu (10 passages)
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
@@ -14,26 +16,26 @@ exports.signup = (req, res, next) => {
                 .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
                 .catch(error => res.status(400).json({ error }));
         })
-        .catch(error => res.status(500).json({ message : "error bcrypt" }));
+        .catch(error => res.status(500).json({ error }));
 };
 
+// ================ logique de connexion ================================
 exports.login = (req, res, next) => {
     User.findOne({ email: req.body.email })
         .then(user => {
             if (!user) {
-                return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+                return res.status(401).json({ error });
             }
-            console.log("passage avant bcrypt compare")
-            console.log("req.body.password", req.body.password)
-            console.log("user.password", user.password)
+            // comparaison bcrypt entre le mot de passe reçu en clair et le hash en BdD
             bcrypt.compare(req.body.password, user.password)
                 .then(valid => {
                     if (!valid) {
-                        return res.status(401).json({ error: 'Mot de passe incorrect !' });
+                        return res.status(401).json({ error });
                     }
                     res.status(200)
                         .json({
                             userId: user._id,
+                            // ajout d'un token contenant le userId à la réponse
                             token: jwt.sign(
                                 { userId: user._id },
                                 process.env.APP_SECRET,
@@ -41,7 +43,7 @@ exports.login = (req, res, next) => {
                             )
                         });
                 })
-                .catch(error => res.status(500).json({ message: "erreur bcrypt compare" }));
+                .catch(error => res.status(500).json({ error }));
         })
-        .catch(error => res.status(500).json({ message : "Erreur phase de login !" }));
+        .catch(error => res.status(500).json({ error }));
 };

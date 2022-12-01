@@ -1,7 +1,7 @@
-// Module authentification
+// ============== Module authentification ==========================
 // recupère le token dans l'entète de la requète, essaye de le décoder
-// avec la clé présente dans le fichier .env.  Insére alors la clé auth : userId
-// dans req et transmet au module suivant (next)
+// avec la clé présente dans le fichier .env et récupère le userId.
+// Insére alors la clé auth : userId dans req et transmet au module suivant (next)
 
 const dotenv = require('dotenv')
 const jwt = require('jsonwebtoken')

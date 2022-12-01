@@ -40,13 +40,14 @@ const errorHandler = error => {
   }
 };
 
+// création du serveur http
 const server = http.createServer(app);
-
+// écoute des évènements du serveur
 server.on('error', errorHandler);
 server.on('listening', () => {
   const address = server.address();
   const bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + port;
   console.log('Listening on ' + bind);
 });
-
+// démarrage du serveur
 server.listen(port);
